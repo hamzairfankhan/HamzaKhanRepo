@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+data/snapshots/
+data/ledger.json
+data/learnings.md
+*.log
+.DS_Store

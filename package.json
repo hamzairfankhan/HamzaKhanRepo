@@ -1,0 +1,31 @@
+{
+  "name": "campaign-autopilot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Campaign Autopilot: closed-loop evaluation and improvement of graph8 outbound campaigns (graph8 Programmable Revenue Hackathon, Lahore 2026)",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "bin": { "autopilot": "./bin/autopilot.js" },
+  "scripts": {
+    "autopilot": "tsx src/cli.ts",
+    "dashboard": "tsx src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest",
+    "@graph8/sdk": "^0.245.0",
+    "@hono/node-server": "^1.13.0",
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.5",
+    "hono": "^4.6.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}
