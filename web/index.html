@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Campaign Autopilot</title>
+<style>
+  :root { --bg:#0f1115; --panel:#171a21; --line:#262a33; --text:#e6e8ee; --muted:#8b93a3; --accent:#5b8cff;
+          --A:#2ecc71; --B:#7bd389; --C:#f1c40f; --D:#f39c12; --F:#e74c3c; --NA:#5c6370; }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.45 -apple-system, "Segoe UI", Inter, Roboto, sans-serif; }
+  header { display:flex; align-items:center; gap:16px; padding:14px 20px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:2 }
+  header h1 { font-size:17px; margin:0; letter-spacing:.2px }
+  header .meta { color:var(--muted); font-size:12px }
+  header .spacer { flex:1 }
+  button { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:6px 10px; cursor:pointer; font-size:13px }
+  button:hover { border-color:var(--accent) }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff }
+  button.ok { border-color:var(--A); color:var(--A) } button.no { border-color:var(--F); color:var(--F) }
+  button:disabled { opacity:.5; cursor:default }
+  main { display:grid; grid-template-columns: 1.1fr 1fr; gap:16px; padding:16px 20px; }
+  @media (max-width: 1000px) { main { grid-template-columns:1fr } }
+  section { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px; min-height:120px }
+  section h2 { margin:0 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted) }
+  table { width:100%; border-collapse:collapse } th, td { text-align:left; padding:6px 6px; border-bottom:1px solid var(--line); vertical-align:top }
+  th { color:var(--muted); font-weight:500; font-size:12px }
+  tr.row { cursor:pointer } tr.row:hover { background:#1d212a } tr.row.sel { background:#1f2634 }
+  .grade { display:inline-block; min-width:30px; text-align:center; font-weight:700; border-radius:6px; padding:2px 6px; color:#0f1115 }
+  .g-A{background:var(--A)} .g-B{background:var(--B)} .g-C{background:var(--C)} .g-D{background:var(--D)} .g-F{background:var(--F)} .g-NA{background:var(--NA);color:#e6e8ee}
+  .flag { display:inline-block; font-size:11px; border:1px solid var(--line); border-radius:999px; padding:1px 7px; margin:1px 2px 1px 0; color:var(--muted) }
+  .flag.risk { border-color:var(--F); color:var(--F) } .flag.warn { border-color:var(--D); color:var(--D) }
+  .sim { font-size:10px; background:#3a2f00; color:#f1c40f; border-radius:4px; padding:1px 5px; margin-right:6px; }
+  .num { font-variant-numeric: tabular-nums; color:var(--muted) }
+  .card { border:1px solid var(--line); border-radius:8px; padding:12px; margin-bottom:12px; background:#131720 }
+  .card h3 { margin:0 0 6px; font-size:14px }
+  .pill { font-size:11px; border-radius:999px; padding:1px 8px; border:1px solid var(--line); color:var(--muted); margin-right:4px }
+  .pill.tier-external, .pill.tier-destructive { border-color:var(--D); color:var(--D) } .pill.tier-write, .pill.tier-read { border-color:var(--A); color:var(--A) }
+  .pill.st-approved { border-color:var(--A); color:var(--A) } .pill.st-rejected { border-color:var(--F); color:var(--F) } .pill.st-applied { border-color:var(--accent); color:var(--accent) } .pill.st-measured { border-color:#c39bd3; color:#c39bd3 }
+  .diff { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:8px 0 }
+  .diff pre { margin:0; white-space:pre-wrap; font:12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; padding:8px; border-radius:6px; max-height:260px; overflow:auto }
+  .before { background:#2a1717; border:1px solid #4a2323 } .after { background:#14291c; border:1px solid #1f4a2c }
+  ul.ev { margin:6px 0 0; padding-left:18px; color:var(--muted); font-size:12px } ul.ev li { margin:2px 0 }
+  pre.explain { white-space:pre-wrap; font:12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; background:#0f1115; border:1px solid var(--line); border-radius:8px; padding:10px; max-height:420px; overflow:auto; margin:0 }
+  .log { font:11px/1.4 ui-monospace, Menlo, monospace; color:var(--muted); max-height:160px; overflow:auto; white-space:pre-wrap }
+  .empty { color:var(--muted); padding:20px 0; text-align:center }
+  .learn { font-size:12px; margin:4px 0; padding:6px 8px; border-left:3px solid var(--accent); background:#131720 }
+  .learn.improved{border-color:var(--A)} .learn.worse{border-color:var(--F)} .learn.no_change{border-color:var(--C)}
+  .toolbar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px }
+</style>
+</head>
+<body>
+<header>
+  <h1>Campaign Autopilot</h1>
+  <span class="meta" id="meta">loading…</span>
+  <span class="spacer"></span>
+  <button id="btn-collect" title="Snapshot the demo workspace (needs G8_API_KEY)">Collect from graph8</button>
+  <button id="btn-seed" title="Snapshot from reference data (no key)">Seed reference</button>
+  <button id="btn-sim" title="Synthetic campaigns, labelled SIMULATED">Seed simulated</button>
+  <button id="btn-measure" title="Compare applied changes with the latest snapshot">Measure</button>
+  <button id="btn-refresh">Refresh</button>
+</header>
+<main>
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <section>
+      <h2>Campaign grades</h2>
+      <table id="grades"><thead><tr><th>Grade</th><th>Campaign</th><th class="num">Sent</th><th class="num">Reply %</th><th class="num">Bounce %</th><th>Flags</th></tr></thead><tbody></tbody></table>
+      <div id="grades-empty" class="empty" style="display:none">No snapshot yet. Collect from graph8 or seed one.</div>
+    </section>
+    <section>
+      <h2>Explanation <span id="explain-name" style="text-transform:none;color:var(--text)"></span></h2>
+      <div class="toolbar"><button id="btn-analyze" class="primary" disabled>Analyze with Claude</button><span id="analyze-status" class="meta"></span></div>
+      <pre class="explain" id="explain">Select a campaign.</pre>
+    </section>
+    <section>
+      <h2>Learnings (what measured changes taught the next cycle)</h2>
+      <div id="learnings"></div>
+    </section>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <section>
+      <h2>Proposals <span class="meta" id="mode"></span></h2>
+      <div class="toolbar">
+        <label class="meta"><input type="checkbox" id="only-selected" checked /> only selected campaign</label>
+        <label class="meta"><input type="checkbox" id="hide-decided" /> hide rejected/measured</label>
+      </div>
+      <div id="proposals"></div>
+    </section>
+    <section>
+      <h2>Activity</h2>
+      <div class="log" id="log"></div>
+    </section>
+  </div>
+</main>
+<script>
+const $ = (s) => document.querySelector(s);
+let state = null, selected = null;
+const fmt = (v) => (v === null || v === undefined ? "–" : v);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+async function api(path, body) {
+  const r = await fetch(path, { method: body === undefined ? "GET" : "POST", headers: { "content-type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
+  return r.json();
+}
+async function load() {
+  state = await api("/api/state");
+  render();
+}
+function render() {
+  const s = state;
+  $("#meta").textContent = s.snapshot ? `snapshot ${s.snapshot.collected_at.slice(0, 19).replace("T", " ")} · ${s.evaluations.length} campaigns · ${s.snapshot.workspace}${s.hasKey ? "" : " · no G8_API_KEY (read-only demo)"}` : "no snapshot";
+  $("#mode").textContent = `mode: ${s.mode}`;
+  const tb = $("#grades tbody"); tb.innerHTML = "";
+  $("#grades-empty").style.display = s.evaluations.length ? "none" : "block";
+  for (const e of s.evaluations) {
+    const tr = document.createElement("tr"); tr.className = "row" + (selected === e.campaign_id ? " sel" : "");
+    tr.innerHTML = `<td><span class="grade g-${e.grade === "N/A" ? "NA" : e.grade}">${e.grade}</span></td>
+      <td>${e.simulated ? '<span class="sim">SIMULATED</span>' : ""}${esc(e.name)}<div class="meta">${esc(e.status)}</div></td>
+      <td class="num">${e.metrics.sent}</td><td class="num">${fmt(e.metrics.replyRatePct)}</td><td class="num">${fmt(e.metrics.bounceRatePct)}</td>
+      <td>${e.flags.map((f) => `<span class="flag ${f.severity}" title="${esc(f.reason)}">${f.code}</span>`).join("")}</td>`;
+    tr.onclick = () => { selected = e.campaign_id; render(); };
+    tb.appendChild(tr);
+  }
+  renderExplain(); renderProposals(); renderLearnings();
+  $("#log").textContent = s.log.slice().reverse().join("\n");
+}
+function renderExplain() {
+  const e = state.evaluations.find((x) => x.campaign_id === selected);
+  $("#btn-analyze").disabled = !e;
+  if (!e) { $("#explain").textContent = "Select a campaign."; $("#explain-name").textContent = ""; return; }
+  const c = state.campaigns.find((x) => x.id === selected) || {};
+  const m = e.metrics;
+  const lines = [];
+  lines.push(`grade ${e.grade}  ·  ${e.verdict}`);
+  lines.push("");
+  lines.push(`sent=${m.sent} delivered=${m.delivered} replied=${m.replied} bounced=${m.bounced}`);
+  lines.push(`reply_rate=${fmt(m.replyRatePct)}% (95% CI ${m.replyRateCI ? m.replyRateCI.low + "–" + m.replyRateCI.high : "–"}%)  bounce_rate=${fmt(m.bounceRatePct)}%  last_send=${fmt(m.stalenessDays)} days ago  replies_in_window=${c.replies ?? 0}`);
+  if (e.step_dropoff.length) { lines.push(""); lines.push("step drop-off:"); for (const s of e.step_dropoff) lines.push(`  ${s.step_id}: sent=${s.sent} replied=${s.replied} (${fmt(s.replyRatePct)}%)`); }
+  lines.push(""); lines.push(`flags (${e.flags.length}):`);
+  for (const f of e.flags) lines.push(`  [${f.severity}] ${f.code}: ${f.reason}`);
+  if (c.steps && c.steps.length) { lines.push(""); lines.push("sequence:"); for (const st of c.steps) { const cat = c.step_catalog[st.step_id] || {}; lines.push(`  ${st.step_id} day ${st.day}: ${cat.name || ""} (${cat.channel || "?"}, cta=${cat.cta_type || "-"}, max_words=${(cat.constraints || {}).max_words || "-"})`); } }
+  if (c.goal) { lines.push(""); lines.push(`goal: ${c.goal}`); }
+  $("#explain").textContent = lines.join("\n");
+  $("#explain-name").textContent = "· " + e.name;
+}
+function renderProposals() {
+  const only = $("#only-selected").checked, hide = $("#hide-decided").checked;
+  let rows = state.ledger.proposals.slice().reverse();
+  if (only && selected) rows = rows.filter((p) => p.campaign_id === selected);
+  if (hide) rows = rows.filter((p) => !["rejected", "measured"].includes(p.status));
+  const el = $("#proposals"); el.innerHTML = "";
+  if (!rows.length) { el.innerHTML = '<div class="empty">No proposals yet. Select a campaign and click “Analyze with Claude”.</div>'; return; }
+  for (const p of rows) {
+    const d = document.createElement("div"); d.className = "card";
+    const canDecide = p.status === "pending", canApply = p.status === "approved";
+    d.innerHTML = `<h3>${esc(p.title)}</h3>
+      <div><span class="pill st-${p.status}">${p.status}</span><span class="pill">${p.type}</span><span class="pill tier-${p.tier}" title="side-effect tier from graph8's API contract">tier: ${p.tier}</span><span class="pill">confidence ${p.confidence.toFixed(2)}</span><span class="pill">expects ${p.expected_metric} ${p.expected_direction === "up" ? "↑" : "↓"}</span>${p.decided_by ? `<span class="pill">by ${p.decided_by}</span>` : ""}</div>
+      <div class="meta" style="margin:6px 0">${esc(p.campaign_name)}</div>
+      <div>${esc(p.rationale)}</div>
+      <ul class="ev">${p.evidence.map((e) => `<li><b>${e.kind}</b>: ${esc(e.text)}</li>`).join("")}</ul>
+      <div class="diff"><pre class="before">${esc(p.before)}</pre><pre class="after">${esc(p.after)}</pre></div>
+      ${p.api_call ? `<div class="meta">applied: ${p.api_call.method} ${esc(p.api_call.path)} (${p.api_call.tier})</div>` : ""}
+      ${p.outcome ? `<div class="learn ${p.outcome.verdict}">${p.outcome.verdict.toUpperCase()}: ${esc(p.outcome.note)}</div>` : ""}
+      <div class="toolbar" style="margin-top:8px">
+        ${canDecide ? `<button class="ok" data-act="approve">Approve</button><button class="no" data-act="reject">Reject</button>` : ""}
+        ${canApply ? `<button data-act="dry">Dry-run</button><button class="primary" data-act="apply">Apply to graph8</button>` : ""}
+      </div>`;
+    d.querySelectorAll("button[data-act]").forEach((b) => b.onclick = async () => {
+      const act = b.dataset.act; b.disabled = true;
+      if (act === "approve" || act === "reject") await api(`/api/proposals/${p.id}/${act}`, {});
+      if (act === "dry") { const r = await api(`/api/apply/${p.id}`, { dryRun: true }); alert(`${r.plan ? r.plan.method + " " + r.plan.path + "\ntier: " + r.plan.tier + "\n\n" + JSON.stringify(r.plan.input, null, 2).slice(0, 1500) : r.error}`); }
+      if (act === "apply") { const r = await api(`/api/apply/${p.id}`, {}); if (!r.ok) alert("apply failed: " + r.error); }
+      await load();
+    });
+    el.appendChild(d);
+  }
+}
+function renderLearnings() {
+  const el = $("#learnings"); const items = state.ledger.learnings.slice().reverse();
+  el.innerHTML = items.length ? items.map((l) => `<div class="learn ${l.verdict}"><b>${l.verdict}</b> · ${esc(l.text)}</div>`).join("") : '<div class="empty">No measured outcomes yet. Apply a proposal, collect again later, then Measure.</div>';
+}
+$("#btn-refresh").onclick = load;
+$("#btn-collect").onclick = async () => { $("#meta").textContent = "collecting…"; const r = await api("/api/collect", {}); if (!r.ok) alert(r.error); await load(); };
+$("#btn-seed").onclick = async () => { await api("/api/seed", { mode: "reference" }); await load(); };
+$("#btn-sim").onclick = async () => { await api("/api/seed", { mode: "simulate" }); await load(); };
+$("#btn-measure").onclick = async () => { await api("/api/measure", {}); await load(); };
+$("#btn-analyze").onclick = async () => {
+  $("#btn-analyze").disabled = true; $("#analyze-status").textContent = "Claude is reading the copy and replies…";
+  const r = await api(`/api/analyze/${selected}`, {});
+  $("#analyze-status").textContent = r.ok ? `${r.proposals.length} proposal(s) · ${r.reply_classification.length} replies classified · cache ${r.usage.cache_read} tokens` : "failed: " + r.error;
+  await load();
+};
+$("#only-selected").onchange = renderProposals; $("#hide-decided").onchange = renderProposals;
+load();
+</script>
+</body>
+</html>

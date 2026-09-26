@@ -24,8 +24,8 @@ if [ -x /usr/local/bin/brew ]; then eval "$(/usr/local/bin/brew shellenv)"; fi
 grep -q 'brew shellenv' ~/.zprofile 2>/dev/null || echo 'eval "$('"$(command -v brew)"' shellenv)"' >> ~/.zprofile
 
 # 3. Core CLI tools
-say "Installing git, gh (GitHub CLI), node, python, uv, jq, ripgrep"
-brew install git gh node python@3.12 uv jq ripgrep 2>&1 | grep -v 'already installed' || true
+say "Installing git, gh (GitHub CLI), node 20+, jq, ripgrep"
+brew install git gh node jq ripgrep 2>&1 | grep -v 'already installed' || true
 
 # 4. Claude Code CLI
 if ! command -v claude >/dev/null 2>&1; then
@@ -57,14 +57,16 @@ if [ ! -d .git ]; then
   cd HamzaKhanRepo
 fi
 
-# 8. Python env for the pipeline
-say "Creating Python virtualenv and installing pipeline deps"
-uv sync
+# 8. Project dependencies
+say "Installing project dependencies"
+npm install
+[ -f .env ] || cp .env.example .env
 
 say "Done. Next steps:"
 cat <<'MSG'
   1. Open a new Terminal tab so PATH changes apply.
   2. Run:  claude          (Claude Code in this folder; log in when prompted)
   3. Inside Claude Code run:  /mcp   to confirm the graph8 MCP server is connected.
-  4. Run the pipeline:  uv run g8pipe --help
+  4. Put your keys in .env (G8_API_KEY from app.graph8.com → Settings → MCP & API → API, ANTHROPIC_API_KEY)
+  5. Run:  npm run autopilot -- --help      and      npm run dashboard
 MSG
