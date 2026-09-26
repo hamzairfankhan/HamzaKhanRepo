@@ -1,0 +1,34 @@
+{
+ "result": {
+  "campaign_id": "9bbceffa-54a3-48d5-995e-047d862dc32e",
+  "days": 90,
+  "name": "Blind Spots: Multi-Stakeholder Deal Mapping Campaign for Tech Sales Leaders",
+  "status": "active",
+  "is_running": false,
+  "sequence_count": 0,
+  "email_metrics": null,
+  "metrics_available": false,
+  "metric_status": "missing",
+  "send_receipts": null,
+  "reconciliation": {
+   "rollup_sent": 0,
+   "receipt_dispatched": 0,
+   "receipt_succeeded": 0,
+   "receipt_last_dispatched_at": null,
+   "discrepancy": false,
+   "defects": [],
+   "note": "Campaign has no sequences attached through either link table; there is nothing to measure yet."
+  },
+  "measured_range": {
+   "days": 90
+  },
+  "metric_sources": {
+   "engagement_rollup": "clickhouse",
+   "send_receipts": "postgres"
+  },
+  "rollup_available": true,
+  "receipts_available": true,
+  "metric_errors": {},
+  "failure_kind": null
+ }
+}

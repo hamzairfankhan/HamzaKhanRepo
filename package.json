@@ -4,8 +4,12 @@
   "private": true,
   "description": "Campaign Autopilot: closed-loop evaluation and improvement of graph8 outbound campaigns (graph8 Programmable Revenue Hackathon, Lahore 2026)",
   "type": "module",
-  "engines": { "node": ">=20" },
-  "bin": { "autopilot": "./bin/autopilot.js" },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "autopilot": "./bin/autopilot.js"
+  },
   "scripts": {
     "autopilot": "tsx src/cli.ts",
     "dashboard": "tsx src/server.ts",
@@ -20,7 +24,7 @@
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
     "hono": "^4.6.0",
-    "zod": "^3.23.8"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/node": "^20.16.0",

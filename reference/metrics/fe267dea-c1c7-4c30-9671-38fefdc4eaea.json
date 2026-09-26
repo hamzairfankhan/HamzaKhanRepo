@@ -1,0 +1,47 @@
+{
+ "result": {
+  "campaign_id": "fe267dea-c1c7-4c30-9671-38fefdc4eaea",
+  "days": 90,
+  "name": "PLG MCP \u00b7 Tech & Software \u00b7 AE",
+  "status": "active",
+  "is_running": true,
+  "sequence_count": 1,
+  "email_metrics": {
+   "sent": 21194,
+   "delivered": 20758,
+   "opened": null,
+   "replied": 17,
+   "bounced": 436,
+   "open_rate": null,
+   "reply_rate": 0.08
+  },
+  "metrics_available": false,
+  "metric_status": "stale",
+  "send_receipts": {
+   "dispatched": 31702,
+   "succeeded": 25276,
+   "last_dispatched_at": "2026-09-25T21:01:51.311912+00:00",
+   "source": "postgres:seqcontactexecutedsteps"
+  },
+  "reconciliation": {
+   "rollup_sent": 21194,
+   "receipt_dispatched": 31702,
+   "receipt_succeeded": 25276,
+   "receipt_last_dispatched_at": "2026-09-25T21:01:51.311912+00:00",
+   "discrepancy": true,
+   "defects": [],
+   "note": "Send receipts show 25276 successful email send(s) but engagement analytics only counted 21194. The metrics pipeline is lagging or dropping events; report the receipt count; do not declare a delivery outage."
+  },
+  "measured_range": {
+   "days": 90
+  },
+  "metric_sources": {
+   "engagement_rollup": "clickhouse",
+   "send_receipts": "postgres"
+  },
+  "rollup_available": true,
+  "receipts_available": true,
+  "metric_errors": {},
+  "failure_kind": null
+ }
+}

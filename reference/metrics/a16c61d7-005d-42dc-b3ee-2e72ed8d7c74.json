@@ -1,0 +1,47 @@
+{
+ "result": {
+  "campaign_id": "a16c61d7-005d-42dc-b3ee-2e72ed8d7c74",
+  "days": 90,
+  "name": "PLG MCP \u00b7 Agencies \u00b7 SDR-BDR \u00b7 Unlimited Data",
+  "status": "active",
+  "is_running": true,
+  "sequence_count": 1,
+  "email_metrics": {
+   "sent": 410,
+   "delivered": 396,
+   "opened": null,
+   "replied": 0,
+   "bounced": 14,
+   "open_rate": null,
+   "reply_rate": 0
+  },
+  "metrics_available": true,
+  "metric_status": "available",
+  "send_receipts": {
+   "dispatched": 410,
+   "succeeded": 410,
+   "last_dispatched_at": "2026-09-04T14:28:24.892034+00:00",
+   "source": "postgres:seqcontactexecutedsteps"
+  },
+  "reconciliation": {
+   "rollup_sent": 410,
+   "receipt_dispatched": 410,
+   "receipt_succeeded": 410,
+   "receipt_last_dispatched_at": "2026-09-04T14:28:24.892034+00:00",
+   "discrepancy": false,
+   "defects": [],
+   "note": "Engagement analytics reconcile with send receipts."
+  },
+  "measured_range": {
+   "days": 90
+  },
+  "metric_sources": {
+   "engagement_rollup": "clickhouse",
+   "send_receipts": "postgres"
+  },
+  "rollup_available": true,
+  "receipts_available": true,
+  "metric_errors": {},
+  "failure_kind": null
+ }
+}

@@ -1,0 +1,34 @@
+{
+ "result": {
+  "campaign_id": "12f5acf8-1dd3-4341-bbc9-ffbbd836ea24",
+  "days": 90,
+  "name": "The Admin Tax: Quantifying What CRM Busywork Costs Banking & Construction Revenue Teams",
+  "status": "active",
+  "is_running": false,
+  "sequence_count": 0,
+  "email_metrics": null,
+  "metrics_available": false,
+  "metric_status": "missing",
+  "send_receipts": null,
+  "reconciliation": {
+   "rollup_sent": 0,
+   "receipt_dispatched": 0,
+   "receipt_succeeded": 0,
+   "receipt_last_dispatched_at": null,
+   "discrepancy": false,
+   "defects": [],
+   "note": "Campaign has no sequences attached through either link table; there is nothing to measure yet."
+  },
+  "measured_range": {
+   "days": 90
+  },
+  "metric_sources": {
+   "engagement_rollup": "clickhouse",
+   "send_receipts": "postgres"
+  },
+  "rollup_available": true,
+  "receipts_available": true,
+  "metric_errors": {},
+  "failure_kind": null
+ }
+}

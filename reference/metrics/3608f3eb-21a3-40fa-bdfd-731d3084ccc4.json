@@ -1,0 +1,47 @@
+{
+ "result": {
+  "campaign_id": "3608f3eb-21a3-40fa-bdfd-731d3084ccc4",
+  "days": 90,
+  "name": "S4-D4 Scaling Ops Team - RevOps Hiring",
+  "status": "active",
+  "is_running": true,
+  "sequence_count": 1,
+  "email_metrics": {
+   "sent": 377,
+   "delivered": 377,
+   "opened": null,
+   "replied": 0,
+   "bounced": 0,
+   "open_rate": null,
+   "reply_rate": 0
+  },
+  "metrics_available": true,
+  "metric_status": "available",
+  "send_receipts": {
+   "dispatched": 395,
+   "succeeded": 391,
+   "last_dispatched_at": "2026-09-25T19:44:13.201943+00:00",
+   "source": "postgres:seqcontactexecutedsteps"
+  },
+  "reconciliation": {
+   "rollup_sent": 377,
+   "receipt_dispatched": 395,
+   "receipt_succeeded": 391,
+   "receipt_last_dispatched_at": "2026-09-25T19:44:13.201943+00:00",
+   "discrepancy": false,
+   "defects": [],
+   "note": "Engagement analytics reconcile with send receipts."
+  },
+  "measured_range": {
+   "days": 90
+  },
+  "metric_sources": {
+   "engagement_rollup": "clickhouse",
+   "send_receipts": "postgres"
+  },
+  "rollup_available": true,
+  "receipts_available": true,
+  "metric_errors": {},
+  "failure_kind": null
+ }
+}

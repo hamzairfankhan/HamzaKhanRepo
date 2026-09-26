@@ -18,7 +18,8 @@ export type FlagCode =
   | "metrics_lag"
   | "deliverability_risk"
   | "dead_step"
-  | "not_launched";
+  | "not_launched"
+  | "metrics_unavailable";
 
 export interface Flag {
   code: FlagCode;
@@ -132,6 +133,15 @@ export function evaluate(
 
   const metricStatus = snap.metrics?.metric_status ?? "unknown";
 
+  if (!snap.metrics) {
+    flags.push({
+      code: "metrics_unavailable",
+      severity: "info",
+      reason: "No metrics could be read for this campaign in this snapshot.",
+      data: {},
+    });
+  }
+
   if (active && metricStatus === "missing") {
     flags.push({
       code: "no_sequence",
@@ -183,7 +193,7 @@ export function evaluate(
   }
 
   const enoughData = m.delivered >= t.minDelivered;
-  if (!enoughData && metricStatus !== "missing") {
+  if (!enoughData && metricStatus !== "missing" && snap.metrics) {
     flags.push({
       code: "low_volume",
       severity: "info",
@@ -230,6 +240,9 @@ export function evaluate(
   if (risk.length) {
     grade = "F";
     verdict = `Failing because of ${risk.map((f) => f.code).join(", ")}: fix infrastructure/setup before touching copy.`;
+  } else if (!snap.metrics) {
+    grade = "N/A";
+    verdict = "Metrics unavailable in this snapshot.";
   } else if (!enoughData) {
     grade = "N/A";
     verdict = `Not enough data yet (${m.delivered} delivered < ${t.minDelivered}).`;

@@ -8,7 +8,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { config } from "./config.js";
+import { config, REPO_ROOT } from "./config.js";
 
 export interface ContextBundle {
   source: "workspace" | "fallback" | "none";
@@ -18,14 +18,31 @@ export interface ContextBundle {
 
 const ORDER = ["brand", "messaging", "audience", "offer", "market", "campaign_brief"];
 
-export function loadFallbackContext(dir = config.contextDir): ContextBundle {
+/** Raw reference docs (reference/context/<category>.json) when no condensed markdown exists. */
+function loadReferenceContextJson(): Record<string, string> {
+  const dir = path.join(REPO_ROOT, "reference", "context");
   const sections: Record<string, string> = {};
+  if (!fs.existsSync(dir)) return sections;
+  for (const name of ["brand", "messaging", "audience", "offer", "market", "campaign"]) {
+    const p = path.join(dir, `${name}.json`);
+    if (!fs.existsSync(p)) continue;
+    const j = JSON.parse(fs.readFileSync(p, "utf8")) as { result?: { documents?: Array<{ title: string; content?: string | null }> } };
+    const docs = j.result?.documents ?? [];
+    const text = docs.filter((d) => d.content).map((d) => `### ${d.title}\n${(d.content ?? "").trim()}`).join("\n\n");
+    if (text) sections[name === "campaign" ? "campaign_brief" : name] = text;
+  }
+  return sections;
+}
+
+export function loadFallbackContext(dir = config.contextDir): ContextBundle {
+  let sections: Record<string, string> = {};
   if (fs.existsSync(dir)) {
     for (const name of ORDER) {
       const p = path.join(dir, `${name}.md`);
       if (fs.existsSync(p)) sections[name] = fs.readFileSync(p, "utf8");
     }
   }
+  if (!Object.keys(sections).length) sections = loadReferenceContextJson();
   const text = ORDER.filter((k) => sections[k]).map((k) => `<${k}>\n${sections[k].trim()}\n</${k}>`).join("\n\n");
   return { source: Object.keys(sections).length ? "fallback" : "none", text, sections };
 }
