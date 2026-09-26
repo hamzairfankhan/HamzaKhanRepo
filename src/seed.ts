@@ -107,3 +107,70 @@ export function simulatedSnapshot(): string {
   ];
   return writeSnapshot(snaps, { workspace: "simulated" });
 }
+
+// ------------------------------------------------------------------ create real campaigns in the demo workspace
+
+import * as g8 from "./g8/client.js";
+
+interface DemoCampaignSpec {
+  name: string;
+  goal: string;
+  target_persona: string;
+  primary_hook: string;
+  core_concept: string;
+  steps: Array<{ name: string; day: number; cta_type: string; max_words: number; subject: string; body: string }>;
+}
+
+/** Deliberately mixed quality so the evaluator and analyzer have something to say. */
+export const DEMO_CAMPAIGNS: DemoCampaignSpec[] = [
+  {
+    name: "Autopilot Demo · VP Sales · Series B SaaS · Pipeline Coverage",
+    goal: "Book 15-minute calls with VP Sales at Series B SaaS companies about pipeline coverage gaps.",
+    target_persona: "VP Sales / Head of Sales at 50–300 person B2B SaaS companies, post Series B",
+    primary_hook: "Your reps' output problem is usually what they meet when they open the CRM, not effort.",
+    core_concept: "Show that pre-researched, signal-enriched records let the same reps have more conversations.",
+    steps: [
+      { name: "Email 1 - Permission Hook", day: 1, cta_type: "soft_ask", max_words: 150, subject: "quick question about pipeline coverage at {{company}}", body: "Hi {{first_name}},\n\nI'm reaching out because I noticed {{company}} recently expanded the sales team and I wanted to share some thoughts on how leading revenue organizations are leveraging AI-powered enrichment and intent data to maximize pipeline coverage and accelerate their go-to-market motion in today's competitive landscape.\n\nOur platform delivers a comprehensive, end-to-end solution that unifies data, outreach and voice in a single pane of glass, empowering teams to work smarter, not harder.\n\nWould you be open to a quick 30-minute call next week to explore synergies?\n\nBest regards" },
+      { name: "Email 2 - Value Add", day: 4, cta_type: "content", max_words: 150, subject: "re: pipeline coverage", body: "Hi {{first_name}}, following up on my previous email. I wanted to share a case study that demonstrates how a similar company achieved a 300% increase in pipeline. Let me know if you would like to see it.\n\nBest regards" },
+      { name: "Email 3 - Direct Ask", day: 8, cta_type: "meeting", max_words: 120, subject: "last one", body: "Hi {{first_name}}, I have not heard back so I assume this is not a priority. If that changes, feel free to reach out.\n\nBest regards" },
+    ],
+  },
+  {
+    name: "Autopilot Demo · RevOps Leaders · CRM Consolidation",
+    goal: "Start conversations with RevOps leaders consolidating a fragmented GTM stack.",
+    target_persona: "Head of RevOps / Sales Ops at 100–500 person B2B companies running 5+ GTM tools",
+    primary_hook: "Every tool you added to fix a gap created two more handoffs.",
+    core_concept: "Position one system of record for data, outreach and dialer as fewer handoffs, not more features.",
+    steps: [
+      { name: "Email 1 - Pain Open", day: 1, cta_type: "soft_ask", max_words: 110, subject: "{{company}}'s GTM stack", body: "{{first_name}}, how many tools does a lead touch between form fill and first call at {{company}}?\n\nMost RevOps teams we talk to count six. Each one is a sync job someone owns on a Monday.\n\nWe run data, sequences and the dialer in one system so the record is already filled in when a rep opens it.\n\nWorth 15 minutes to compare notes on your stack?" },
+      { name: "Email 2 - Proof", day: 5, cta_type: "content", max_words: 110, subject: "re: {{company}}'s GTM stack", body: "{{first_name}}, one concrete example: a 120-rep team replaced three sync jobs with one record and cut lead-to-first-touch from 2 days to 40 minutes.\n\nHappy to walk through how they mapped it. Would a short call this week work?" },
+    ],
+  },
+];
+
+export async function createDemoCampaigns(log: (s: string) => void = console.log): Promise<string[]> {
+  const ids: string[] = [];
+  for (const spec of DEMO_CAMPAIGNS) {
+    log(`creating "${spec.name}"…`);
+    const created = await g8.createCampaign({
+      name: spec.name,
+      category: "Outbound",
+      goal: spec.goal,
+      target_persona: spec.target_persona,
+      primary_hook: spec.primary_hook,
+      core_concept: spec.core_concept,
+      target_channels: ["email"],
+      auto_generate_documents: false,
+    });
+    const id = String(created.id ?? created.campaign_id ?? "");
+    if (!id) throw new Error(`createCampaign returned no id: ${JSON.stringify(created).slice(0, 300)}`);
+    ids.push(id);
+    for (const s of spec.steps) {
+      await g8.createCampaignStep(id, { name: s.name, channel: "email", mode: "email", day: s.day, cta_type: s.cta_type, constraints: { max_words: s.max_words }, stop_on_reply: true, personalization_level: "medium" });
+    }
+    const emails = spec.steps.map((s, i) => `## step_${i + 1} — ${s.name} (day ${s.day})\n\nSubject: ${s.subject}\n\n${s.body}`).join("\n\n---\n\n");
+    await g8.createCampaignDocument(id, { display_name: "Emails", file_type: "emails", folder_path: "campaign_copy/channels/email", content: emails, status: "completed" });
+    log(`  → ${id} with ${spec.steps.length} steps and an Emails document`);
+  }
+  return ids;
+}

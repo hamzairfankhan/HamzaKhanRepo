@@ -146,3 +146,21 @@ export async function pauseSequence(sequenceId: string) {
   initG8();
   return g8.api.call(OPS.pauseSequence, { path: { sequence_id: sequenceId } } as never);
 }
+
+// ------------------------------------------------------------------ seeding an empty demo workspace
+
+export async function createCampaign(body: G8Contract.developer_api__interfaces__v1__gtm_campaigns_router__CampaignCreateRequest) {
+  initG8();
+  const res = await g8.api.gtmCampaigns.createCampaign({ body });
+  return res.data as { id?: string; campaign_id?: string } & Record<string, unknown>;
+}
+
+export async function createCampaignStep(campaignId: string, body: G8Contract.CreateStepRequest) {
+  initG8();
+  return (await g8.api.gtmCampaigns.createCampaignStep({ path: { campaign_id: campaignId }, body })).data;
+}
+
+export async function createCampaignDocument(campaignId: string, body: G8Contract.CampaignDocumentCreateRequest) {
+  initG8();
+  return (await g8.api.gtmCampaigns.createCampaignDocument({ path: { campaign_id: campaignId }, body })).data;
+}

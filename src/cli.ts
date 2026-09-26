@@ -12,7 +12,7 @@ import { evaluate, gradeRank, type Evaluation } from "./evaluate.js";
 import { tierOf } from "./g8/client.js";
 import { addProposals, autoApprovable, decide, loadLedger, saveLedger, type Proposal, type Tier } from "./ledger.js";
 import { measureAll } from "./measure.js";
-import { snapshotFromReference, simulatedSnapshot } from "./seed.js";
+import { createDemoCampaigns, snapshotFromReference, simulatedSnapshot } from "./seed.js";
 import type { CampaignSnapshot } from "./types.js";
 
 const program = new Command();
@@ -91,9 +91,13 @@ program
   .description("Build a snapshot without a live workspace")
   .option("--from-reference", "from the reference workspace pull under reference/")
   .option("--simulate", "synthetic campaigns, labelled SIMULATED")
+  .option("--create", "CREATE demo campaigns (steps + email copy) in the connected workspace via the API")
   .option("--limit <n>")
-  .action((o) => {
-    if (o.simulate) console.log(`Simulated snapshot written to ${simulatedSnapshot()}`);
+  .action(async (o) => {
+    if (o.create) {
+      const ids = await createDemoCampaigns(console.log);
+      console.log(`created ${ids.length} campaign(s); now run \`autopilot collect\``);
+    } else if (o.simulate) console.log(`Simulated snapshot written to ${simulatedSnapshot()}`);
     else console.log(`Reference snapshot written to ${snapshotFromReference({ limit: o.limit ? Number(o.limit) : undefined })}`);
   });
 
