@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "graph8": {
+      "command": "uvx",
+      "args": ["--python", "3.12", "g8-mcp-server"],
+      "env": {
+        "G8_API_KEY": "${G8_API_KEY}"
+      }
+    }
+  }
+}
