@@ -28,7 +28,15 @@ function loadReferenceContextJson(): Record<string, string> {
     if (!fs.existsSync(p)) continue;
     const j = JSON.parse(fs.readFileSync(p, "utf8")) as { result?: { documents?: Array<{ title: string; content?: string | null }> } };
     const docs = j.result?.documents ?? [];
-    const text = docs.filter((d) => d.content).map((d) => `### ${d.title}\n${(d.content ?? "").trim()}`).join("\n\n");
+    // Cap each document so every doc in a category (e.g. Compliance Rules next to Brand Voice) survives truncation.
+    const perDoc = 5_000;
+    const text = docs
+      .filter((d) => d.content)
+      .map((d) => {
+        const body = (d.content ?? "").trim();
+        return `### ${d.title}\n${body.length > perDoc ? body.slice(0, perDoc) + "\n[...truncated]" : body}`;
+      })
+      .join("\n\n");
     if (text) sections[name === "campaign" ? "campaign_brief" : name] = text;
   }
   return sections;
@@ -63,7 +71,7 @@ export function bundleFromWorkspaceDocs(docs: Array<{ category?: string | null; 
 }
 
 /** Keep the prompt bounded; long docs are truncated per section, not dropped. */
-export function truncateBundle(b: ContextBundle, maxCharsPerSection = 12_000): ContextBundle {
+export function truncateBundle(b: ContextBundle, maxCharsPerSection = 30_000): ContextBundle {
   const sections = Object.fromEntries(
     Object.entries(b.sections).map(([k, v]) => [k, v.length > maxCharsPerSection ? v.slice(0, maxCharsPerSection) + "\n[...truncated]" : v]),
   );
